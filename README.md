@@ -1,2 +1,2 @@
 # arxiv-mini-gpt
-mini gpt built from scratch, trained on arxiv abstracts
+mini gpt trained on arxiv titles/abstracts - followed andrej karpathy's gpt from scratch tutorial
