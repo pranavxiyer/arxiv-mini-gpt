@@ -14,6 +14,8 @@ n_embd = 128
 n_head = 4
 n_layer = 4
 dropout = 0.1
+BOS = "\x02"
+EOS = "\x03"
 # ------------
 
 torch.manual_seed(1337)
@@ -157,7 +159,7 @@ class GPTLanguageModel(nn.Module):
             loss = F.cross_entropy(logits, targets)
         return logits, loss
     
-    def generate(self, idx, max_new_tokens):
+    def generate(self, idx, max_new_tokens, eos_idx=None):
         # idx is (B, T) array of indices in the current context
         for _ in range(max_new_tokens):
             # crop idx to the last block_size tokens
@@ -172,6 +174,8 @@ class GPTLanguageModel(nn.Module):
             idx_next = torch.multinomial(probs, num_samples=1) # (B, 1)
             # append sampled index to the running sequence 
             idx = torch.cat((idx, idx_next), dim=1) # (B, T+1)
+            if eos_idx is not None and idx_next.item() == eos_idx:
+                break
         return idx
 
 # initializing the model
@@ -198,6 +202,7 @@ for iter in range(max_iters):
     optimizer.step()
 
 # generate from the model
-prompt = "Title: "
+prompt = f"{BOS}Title: "
+eos_idx = stoi[EOS]
 context = torch.tensor([encode(prompt)], dtype=torch.long, device=device)
-print(decode(m.generate(context, 800)[0].tolist()))
+print(decode(m.generate(context, 800, eos_idx=eos_idx)[0].tolist()))
